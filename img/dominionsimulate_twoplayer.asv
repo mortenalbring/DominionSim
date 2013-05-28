@@ -1,0 +1,103 @@
+%function dominionsimulate
+%clc
+%clear
+
+h = waitbar(0,'completion')
+
+player.one.playing = 1;
+
+maxgames = 1000
+for m=1:maxgames
+    
+    waitbar((m/maxgames),h,(m/maxgames))
+    
+    
+    table.copper = 60;
+    table.silver = 40;
+    table.gold = 30;
+    
+    table.estate = 10;
+    table.duchy = 10;
+    table.province = 10;
+    
+    %11 = copper
+    %12 = silver
+    %13 = gold
+    
+    %21 = estates
+    %22 = duchy
+    %23 = province
+    
+    %33 = smithy
+    
+    
+    player.one.deck = [11,11,11,11,11,11,11,21,21,21];
+    player.one.hand = [];
+    player.one.discard = [];
+    player.one.vp = 0;
+    
+    player.two.deck = [11,11,11,11,11,11,11,21,21,21];
+    player.two.hand = [];
+    player.two.discard = [];
+    player.two.vp = 0;
+    
+    %Player One draw hand
+    [player.one] = drawnewhand(player.one);
+    
+    %Player Two draw hand
+    [player.two] = drawnewhand(player.two);
+    
+    table.turn = 0;
+    while (table.province > 0)
+        table.turn = table.turn + 1;
+        
+        %%%%Player One Turn
+        
+        for i=1:size(player.one.hand,2)
+            %if I have a smithy, play a smithy
+            if (player.one.hand(i) == 33) 
+                player.one.hand(i) = [];
+                player.one.discard(end+1) = 33;
+                
+                player.hand = [player.hand 
+                
+            end
+        end
+        
+        %countmoney
+        player.one.money = countMoney(player.one.hand);              
+        %buy strategy
+        [table,player.one] = buyMoneyandDuchy(table,player.one);
+        %Discard hand and draw new hand
+        [player.one] = drawnewhand(player.one);
+        
+        %%%%Player Two Turn
+        %countmoney
+        player.two.money = countMoney(player.two.hand);
+        %buy strategy
+        [table,player.two] = buyMoneyandDuchyandEstate(table,player.two);
+        %Discard hand and draw new hand
+        [player.two] = drawnewhand(player.two);
+        
+    end
+      
+    %Count VP 
+    player.one = countVP(player.one);
+    player.two = countVP(player.two);
+    
+    
+    if player.one.vp > player.two.vp
+        meta.winner(m) = 1;
+    elseif player.one.vp < player.two.vp
+        meta.winner(m) = 2;
+    else
+        meta.winner(m) = 0;
+    end
+    meta.vp(m,1) = m;
+    meta.vp(m,2) = player.one.vp;
+    meta.vp(m,3) = player.two.vp;
+    meta.winturn(m) = table.turn;
+end
+close(h)
+
+hist(meta.winner)
